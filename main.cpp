@@ -6,33 +6,38 @@ using namespace std;
 class AbstractTerm
 {
 public:
-    virtual AbstractTerm* derivative() = 0;
-    virtual double evaluate(double) = 0;
-    virtual string toString() = 0;
+    int derivativeNum = 0;
+    virtual AbstractTerm* derivative();
+    virtual double evaluate(double);
+    virtual string toString();
+    void setDerivative(int derivative){
+        derivativeNum = derivative;
+    };
 
 };
 
-class ConstantTerm
+class ConstantTerm:AbstractTerm
 {
 public:
     ConstantTerm(int term)
     {
         this->term = term;
     }
-
-    AbstractTerm* derivitive()
+    AbstractTerm* derivative()
     {
-
+        AbstractTerm* newTerm = new AbstractTerm();
+        newTerm->derivativeNum = 0;
+        return newTerm;
     }
 
     double evaluate(double t)
     {
-
+        return term;
     }
 
     string toString()
     {
-
+        return  std::to_string(term);
     }
 
 private:
@@ -41,7 +46,7 @@ private:
 
 };
 
-class LinearTerm
+class LinearTerm:AbstractTerm
 {
 public:
     LinearTerm(int term)
@@ -49,19 +54,21 @@ public:
         this->term = term;
     }
 
-    AbstractTerm* derivitive()
+    AbstractTerm* derivative()
     {
-
+        AbstractTerm* newTerm = new AbstractTerm();
+        newTerm->derivativeNum = term;
+        return newTerm;
     }
 
     double evaluate(double t)
     {
-
+        return t * term;
     }
 
     string toString()
     {
-
+        return  (std::to_string(term) + "x");
     }
 
 private:
@@ -155,6 +162,7 @@ int main()
     cout << t3->toString() << endl; // - 6cos(x)
     cout << t3->evaluate(45) << endl; // -4.24
     Expression* e1 = new Expression();
+    e1->getDerivative();
     (*e1) += t1;
     (*e1) += t2;
     (*e1) += t3;
