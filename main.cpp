@@ -3,9 +3,9 @@
 
 using namespace std;
 
-class AbstractTerm {
+static class AbstractTerm {
 public:
-    string derivativeNum = 0;
+    string derivativeNum ;
 
     virtual AbstractTerm *derivative();
 
@@ -13,22 +13,22 @@ public:
 
     virtual string toString();
 
-
+    //https://www.educative.io/edpresso/what-is-a-cpp-abstract-class
     virtual int getPriority();
 
-    void setDerivative(int derivative) {
+ /*   void setDerivative(int derivative) {
         derivativeNum = derivative;
     };
-
+*/
 };
 
-class ConstantTerm : AbstractTerm {
+class ConstantTerm : public AbstractTerm {
 public:
     ConstantTerm(int term) {
         this->term = term;
     }
 
-    AbstractTerm *derivative() {
+     AbstractTerm *derivative() {
         AbstractTerm *newTerm = new AbstractTerm();
         string stringToSet = " ";
         if (term > 0) {
@@ -63,14 +63,14 @@ private:
 
 };
 
-class LinearTerm : AbstractTerm {
+class LinearTerm :public ConstantTerm {
 public:
-    LinearTerm(int term) {
+    LinearTerm(int term) : ConstantTerm(term) {
         this->term = term;
     }
 
-    AbstractTerm *derivative() {
-        AbstractTerm *newTerm = new AbstractTerm();
+    ::AbstractTerm *derivative() {
+        ::AbstractTerm *newTerm = new ::AbstractTerm();
         string stringToSet = " ";
         if (term > 0) {
             stringToSet += "+ ";
@@ -134,15 +134,15 @@ public:
     }
 };
 
-class PolynomialTerm : AbstractTerm {
+class PolynomialTerm : public LinearTerm {
 public:
-    PolynomialTerm(int term1, int term2) {
+    PolynomialTerm( int term1, int term2) : LinearTerm(term1) {
         this->term1 = term1;
         this->term2 = term2;
     }
 
-    AbstractTerm *derivative() {
-        AbstractTerm *newTerm = new AbstractTerm();
+    ::AbstractTerm *derivative() {
+        ::AbstractTerm *newTerm = new ::AbstractTerm();
         string stringToSet = " ";
         if (term1 >= 0) {
             stringToSet += "+ ";
@@ -193,19 +193,19 @@ private:
 };
 
 enum TrigType {
-    COSINE,
-    SINE
+    COSINE = 0,
+    SINE = 1
 };
 
-class TrigTerm : AbstractTerm {
+class TrigTerm : public LinearTerm {
 public:
-    TrigTerm(int term, TrigType trigType) {
+    TrigTerm( int term, TrigType trigType) : LinearTerm(term) {
         this->term = term;
         this->trigType = trigType;
     }
 
-    AbstractTerm *derivative() {
-        AbstractTerm *newTerm = new AbstractTerm();
+    ::AbstractTerm *derivative() {
+        ::AbstractTerm *newTerm = new ::AbstractTerm();
 
         string stringToSet;
         if (term >= 0) {
@@ -273,7 +273,9 @@ public:
         //ProjNode* newHead = new ProjNode();
         holdThings = new ProjLinkedList();
     }
-
+    void setLinkedList(ProjLinkedList *holdItems){
+        *holdThings = *holdItems;
+    }
     Expression *getDerivative() {
         Expression *newExpression = new Expression();
         for (int x = 0; x < holdThings->returnLength(); x++) {
@@ -297,12 +299,18 @@ public:
     }
 
     string toString() {
-        int size = holdThings->returnLength();
+        /*int size = holdThings->returnLength();
         string holdStrings[size];
         for (int x = 0; x < size; x++) {
             AbstractTerm *tempTerm = holdThings->getAt(x);
             string tempText = tempTerm->derivativeNum;//3x^2 4x 76
             holdStrings[x] = tempText;
+        }*/
+        int size = holdThings->returnLength();
+        string finalString = "";
+        for(int x=0;x<size;x++){
+            AbstractTerm* tempTerm = holdThings->getAt(x);
+            finalString+=tempTerm->toString();
         }
         //sort it by assigning priority vals
         //sort thing based on priority
@@ -329,44 +337,44 @@ public:
                 PolynomialTerm *tempTerm = dynamic_cast<PolynomialTerm *>(newTerm);
                 PolynomialTerm *currNodeTerm = dynamic_cast<PolynomialTerm *>(currentNodeTerm);
                 PolynomialTerm *prevNodeTerm = dynamic_cast<PolynomialTerm *>(prevNodeTerm);
-                if (tempTerm->getExponent() > currNodeTerm->getExponent() && tempTerm->getExponent() <= prevNodeTerm->getExponent()) {
+                if ((currentNodeTerm != nullptr && tempTerm->getExponent() > currNodeTerm->getExponent()) && (prevNodeTerm !=nullptr && tempTerm->getExponent() <= prevNodeTerm->getExponent())) {
                     keepGoing = false;
                 }
             } else if (currPriority > currentNodeVal && currPriority < prevNodeVal) {
                 keepGoing = false;
-            }else{
+            } else {
                 prevNode = afterNode;
                 afterNode = afterNode->nextNode;
             }
+
         }
         if (prevNode != nullptr) {
             prevNode->nextNode = newNode;
         }
         newNode->nextNode = afterNode;
-        /* ProjNode* newNode = new ProjNode();
-         newNode->heldObject = newTerm;
-         holdThings->add(newNode);*/
+        Expression expressionToReturn = *new Expression();
+        expressionToReturn.setLinkedList(holdThings);
+        return expressionToReturn;
     }
 
     ~Expression() {}
 };
 
 int main() {
-    AbstractTerm *t1 = reinterpret_cast<AbstractTerm *>(new LinearTerm(5));
-    AbstractTerm *t2 = reinterpret_cast<AbstractTerm *>(new PolynomialTerm(-4, 3));
-    AbstractTerm *t3 = reinterpret_cast<AbstractTerm *>(new TrigTerm(-6, TrigType::COSINE));
+    AbstractTerm* t1 = new LinearTerm(5);
+    AbstractTerm* t2 = new PolynomialTerm(-4,3);
+    AbstractTerm* t3 = new TrigTerm(-6, TrigType::COSINE);
     cout << t1->toString() << endl; // + 5x
     cout << t1->evaluate(5) << endl; // 25
     cout << t2->toString() << endl; // - 4x^3
     cout << t2->evaluate(2) << endl; // -32
     cout << t3->toString() << endl; // - 6cos(x)
     cout << t3->evaluate(45) << endl; // -4.24
-    Expression *e1 = new Expression();
-    e1->getDerivative();
+    Expression* e1 = new Expression();
     (*e1) += t1;
     (*e1) += t2;
     (*e1) += t3;
-    Expression *e2 = e1->getDerivative();
+    Expression* e2 = e1->getDerivative();
     cout << e1->toString() << endl; // - 4x^3 + 5x - 6cos(x)
     cout << e2->toString() << endl; // - 12x^2 + 5 + 6sin(x)
     cout << e1->getEvaluation(0) << endl; // -6
